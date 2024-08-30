@@ -24,4 +24,6 @@
  * */
 #define ADC_u8Reference_Voltage                    AVCC
 
+#define ADC_u32TIMEOUT                             50000u
+
 #endif //ADC_CFG_H
