@@ -23,4 +23,7 @@
 #define AREF                       2u
 
 
+#define IDEL                      1u
+#define BUSY                      2u
+
 #endif //ADC_PRV_H
