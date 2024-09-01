@@ -29,7 +29,7 @@
 #define ADCH               *((volatile uint8*)0x25)  // ADC Data Register High Byte
 #define ADCL               *((volatile uint8*)0x24)  // ADC Data Register Low Byte
 
-#define ADC                *((volatile uint16)0x24)  // For access 10 bits
+#define ADC                *((volatile uint16*)0x24)  // For access 10 bits
 
 // Define SFIOR register and its bit positions
 #define SFIOR              *((volatile uint8*)0x50)  // Special Function IO Register
