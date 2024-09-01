@@ -16,7 +16,7 @@
 /*configure the ADC resolution, options: 1- EIGHT_BITS
  *                                       2- TEN_BITS
  * */
-#define ADC_u8Resolution                    EIGHT_BITS
+#define ADC_u8Resolution                    TEN_BITS
 
 
 /*configure the ADC reference voltage, options: 1- AVCC

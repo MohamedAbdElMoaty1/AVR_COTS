@@ -26,4 +26,14 @@
 #define IDEL                      1u
 #define BUSY                      2u
 
+
+#define SINGLE_ASYNCH              1u
+#define CHAIN_ASYNCH              2u
+
+
+static void voidHandelSingleConversionAsynch(void);
+static void voidHandelChainConversionAsynch(void);
+
+
+
 #endif //ADC_PRV_H

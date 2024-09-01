@@ -14,6 +14,9 @@ static void(*ADC_pvCallBackNotificationFunc)(void) = NULL;
 /* Busy flag to indicate if ADC is currently in use */
 static uint8 ADC_u8BusyFlag = IDEL;
 
+static ADC_Chain_t* ADC_ChainData = NULL;
+static uint8 Local_u8ISRSource = 0 ;
+
 /* Function to initialize the ADC */
 void ADC_voidInit(void)
 {
@@ -52,7 +55,7 @@ void ADC_voidInit(void)
 }
 
 /* Function for synchronous ADC conversion */
-uint16 ADC_u8StartConversionSynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result)
+uint16 ADC_u8StartSingleConversionSynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result)
 {
 	uint8  Local_u8Error_State = OK; // Variable to hold error state
 	uint32 Local_u32Counter    = 0u;
@@ -111,7 +114,7 @@ uint16 ADC_u8StartConversionSynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result)
 }
 
 /* Function for asynchronous ADC conversion */
-uint16 ADC_u8StartConversionAsynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result, void(*Copy_pvNotificationFunc)(void))
+uint16 ADC_u8StartSingleConversionAsynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result, void(*Copy_pvNotificationFunc)(void))
 {
 	uint8 Local_u8Error_State = OK;
 
@@ -133,9 +136,10 @@ uint16 ADC_u8StartConversionAsynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result
 			/* Start conversion */
 			SET_BIT(ADCSRA, ADCSRA_ADSC);
 
-			/* Enable ADC interrupt */
+			/*enable ADC interrupt */
 			SET_BIT(ADCSRA, ADCSRA_ADIE);
 
+			Local_u8ISRSource = SINGLE_ASYNCH;
 		}
 		else
 		{
@@ -152,9 +156,49 @@ uint16 ADC_u8StartConversionAsynch(uint8 Copy_u8Channel, uint16* Copy_pu16Result
 	return Local_u8Error_State;
 }
 
-/* ADC Conversion Complete Interrupt Service Routine (ISR) */
-__attribute__((signal)) void __vector_16(void);
-void __vector_16(void)
+
+
+
+uint8 ADC_u8StartChainConversionAsynch(const ADC_Chain_t* Copy_Obj)
+{
+	uint8 Local_u8ErrorState = OK ;
+	if( (Copy_Obj != NULL) && (Copy_Obj->ChannelArr != NULL) && (Copy_Obj->ResultArr != NULL) && (Copy_Obj->NotificationFunc != NULL) )
+	{
+		if (ADC_u8BusyFlag == IDEL)
+		{
+			ADC_u8BusyFlag = BUSY; // Mark ADC as busy
+
+			ADC_ChainData = Copy_Obj ;
+
+			/* Set the input channel */
+			ADMUX &= CHANNEL_BIT_MASK; // Clear the channel selection bits
+			ADMUX |= ADC_ChainData->ChannelArr[0];
+
+			/* Start conversion */
+			SET_BIT(ADCSRA, ADCSRA_ADSC);
+
+			/*enable ADC interrupt */
+			SET_BIT(ADCSRA, ADCSRA_ADIE);
+
+			Local_u8ISRSource = CHAIN_ASYNCH;
+
+		}
+		else
+		{
+			Local_u8ErrorState = BUSY_ERR ;
+		}
+	}
+	else
+	{
+		Local_u8ErrorState = NULL_PTR_ERR;
+	}
+
+	return Local_u8ErrorState ;
+
+}
+
+
+static void voidHandelSingleConversionAsynch(void)
 {
 	/* Get the ADC result based on resolution */
 #if ADC_u8Resolution == EIGHT_BITS
@@ -163,7 +207,7 @@ void __vector_16(void)
 	*ADC_pu16Result = ADC; // 10-bit result
 #endif
 
-	/* Disable ADC interrupt */
+	/*Disable ADC interrupt */
 	CLR_BIT(ADCSRA, ADCSRA_ADIE);
 
 	ADC_u8BusyFlag = IDEL; // Mark ADC as idle
@@ -172,5 +216,72 @@ void __vector_16(void)
 	if (ADC_pvCallBackNotificationFunc != NULL)
 	{
 		ADC_pvCallBackNotificationFunc();
+	}
+	else
+	{
+
+	}
+}
+
+static void voidHandelChainConversionAsynch(void)
+{
+	volatile static uint8  Local_u8ChannelIndex = 0 ;
+	/* Get the ADC result based on resolution */
+#if ADC_u8Resolution == EIGHT_BITS
+	ADC_ChainData->ResultArr[Local_u8ChannelIndex]= ADCH; // 8-bit result
+#elif ADC_u8Resolution == TEN_BITS
+	ADC_ChainData->ResultArr[Local_u8ChannelIndex] = ADC;  // 10-bit result
+#endif
+
+			Local_u8ChannelIndex = Local_u8ChannelIndex + 1  ;
+	if(Local_u8ChannelIndex == ADC_ChainData->ChainSize)
+	{
+		Local_u8ChannelIndex = 0 ;
+
+
+		/*Disable ADC interrupt */
+		CLR_BIT(ADCSRA, ADCSRA_ADIE);
+
+		ADC_u8BusyFlag = IDEL; // Mark ADC as idle
+
+		/* Call the user-provided callback function */
+		if (ADC_ChainData->NotificationFunc != NULL)
+		{
+			ADC_ChainData->NotificationFunc();
+		}
+		else
+		{
+
+		}
+
+	}
+	else
+	{
+		/* Set the input channel */
+		ADMUX &= CHANNEL_BIT_MASK; // Clear the channel selection bits
+		ADMUX |= ADC_ChainData->ChannelArr[Local_u8ChannelIndex];
+
+		/* Start conversion */
+		SET_BIT(ADCSRA, ADCSRA_ADSC);
+
+	}
+
+}
+
+
+
+
+/* ADC Conversion Complete Interrupt Service Routine (ISR) */
+__attribute__((signal)) void __vector_16(void);
+void __vector_16(void)
+{
+
+	if(Local_u8ISRSource == SINGLE_ASYNCH)
+	{
+		voidHandelSingleConversionAsynch();
+	}
+	else if(Local_u8ISRSource == CHAIN_ASYNCH)
+	{
+		voidHandelChainConversionAsynch();
 	}
 }
