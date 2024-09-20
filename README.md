@@ -1,11 +1,11 @@
-ATmega32 COTS
-Overview
+#ATmega32 Project
+###Overview
 This project involves developing various peripheral drivers and modules for the ATmega32 microcontroller. The repository is structured to include hardware abstraction layers (HAL), microcontroller abstraction layers (MCAL), and utility libraries, making it modular and scalable for different microcontroller applications.
 
-Repository Structure
+###Repository Structure
 The project is organized into three main directories:
 
-1. HAL (Hardware Abstraction Layer)
+##1. HAL (Hardware Abstraction Layer)
 The HAL contains drivers for different hardware modules that interact with the microcontroller. The following modules are implemented:
 
 CLCD: Driver for character LCD displays.
@@ -18,7 +18,7 @@ LM35: Temperature sensor driver using the LM35 sensor.
 SSD: Seven Segment Display driver.
 Switch: Button and switch interface.
 Stepper_Motor: Stepper motor control driver.
-2. MCAL (Microcontroller Abstraction Layer)
+##2. MCAL (Microcontroller Abstraction Layer)
 MCAL includes low-level drivers specific to ATmega32 for interfacing with hardware peripherals:
 
 1-DIO: Digital Input/Output control.
@@ -30,7 +30,7 @@ MCAL includes low-level drivers specific to ATmega32 for interfacing with hardwa
 7-WDT: Watchdog Timer.
 8-UART: Universal Asynchronous Receiver-Transmitter driver for serial communication.
 9-SPI: Serial Peripheral Interface driver.
-3. Library
+##3. Library
 This folder contains general utility functions and types:
 
 Map: Function for value mapping between ranges.
