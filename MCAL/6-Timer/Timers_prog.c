@@ -2,14 +2,14 @@
 #include "BIT_MATH.h"
 #include "ErrType.h"
 
-
+#include "DIO_interface.h"
 #include "Timers_interface.h"
 #include "Timers_cfg.h"
 #include "Timers_prv.h"
 #include "Timers_reg.h"
 
 
-static void(*Timer_pvCallBackFunc[8])(void) = {NULL};
+static void(*Timer_pvCallBackFunc[9])(void) = {NULL};
 
 uint8 Timers0_u8Init(Timer0_cfg_t *Timer0_cfg)
 {
@@ -215,7 +215,6 @@ uint8 Timers1_u8Init(Timer1_cfg_t *Timer1_cfg)
 	{
 		Local_u8Error_State = NOK;
 	}
-
 
 
 	/*Waveform Generation Mode*/
