@@ -172,4 +172,5 @@ uint8 Timer_u8IntEnable(Timer_Interrupts_t Interrupts_t);
 uint8 Timer_u8IntDisable(Timer_Interrupts_t Interrupts_t);
 /************************************************************************************************/
 
+
 #endif //TIMERS_INTERFACE_H
